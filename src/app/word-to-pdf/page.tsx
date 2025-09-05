@@ -78,8 +78,7 @@ export default function WordToPdfPage() {
           useCORS: true,
           allowTaint: true,
           backgroundColor: '#ffffff',
-          logging: false,
-          letterRendering: true
+          logging: false
         });
 
         // Clean up
@@ -102,6 +101,7 @@ export default function WordToPdfPage() {
       }
 
       const pdfBytes = await pdfDoc.save();
+      // @ts-ignore
       const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
       setProcessedPdf(pdfBlob);
     } catch (err) {

@@ -55,6 +55,7 @@ export default function PdfMergePage() {
       }
 
       const pdfBytes = await mergedPdf.save();
+      // @ts-ignore
       const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
       setProcessedPdf(pdfBlob);
     } catch (err) {

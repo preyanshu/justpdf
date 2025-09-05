@@ -1,4 +1,4 @@
-import { FileText, Image, FileSpreadsheet, Presentation, Scissors, Merge, Download } from 'lucide-react';
+import { FileText, Image, FileSpreadsheet, Scissors, Merge, Trash2, Zap, Download, Maximize } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
@@ -9,6 +9,7 @@ export default function Home() {
       icon: Image,
       href: '/image-to-pdf',
       color: 'bg-blue-500'
+      
     },
     {
       title: 'Word to PDF',
@@ -25,13 +26,6 @@ export default function Home() {
       color: 'bg-orange-500'
     },
     {
-      title: 'PowerPoint to PDF',
-      description: 'Convert PowerPoint presentations to PDF',
-      icon: Presentation,
-      href: '/powerpoint-to-pdf',
-      color: 'bg-purple-500'
-    },
-    {
       title: 'PDF Resizer',
       description: 'Compress and resize PDF files',
       icon: Scissors,
@@ -44,6 +38,48 @@ export default function Home() {
       icon: Merge,
       href: '/pdf-merge',
       color: 'bg-indigo-500'
+    },
+    {
+      title: 'JPEG to PDF',
+      description: 'Convert JPEG images to PDF',
+      icon: Image,
+      href: '/jpeg-to-pdf',
+      color: 'bg-yellow-500'
+    },
+    {
+      title: 'PDF to JPG',
+      description: 'Convert PDF pages to JPG images',
+      icon: Download,
+      href: '/pdf-to-jpg',
+      color: 'bg-pink-500'
+    },
+    {
+      title: 'PDF Compress',
+      description: 'Advanced PDF compression',
+      icon: Zap,
+      href: '/pdf-compress',
+      color: 'bg-orange-600'
+    },
+    {
+      title: 'PDF Split',
+      description: 'Split PDF into individual pages',
+      icon: Scissors,
+      href: '/pdf-split',
+      color: 'bg-green-600'
+    },
+    {
+      title: 'Remove Pages',
+      description: 'Remove specific pages from PDF',
+      icon: Trash2,
+      href: '/pdf-remove-pages',
+      color: 'bg-red-600'
+    },
+    {
+      title: 'Image Resizer',
+      description: 'Resize images with quality control',
+      icon: Maximize,
+      href: '/image-resizer',
+      color: 'bg-purple-600'
     }
   ];
 
@@ -100,7 +136,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -143,7 +179,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <FileText className="h-6 w-6 text-blue-400" />
@@ -154,21 +190,31 @@ export default function Home() {
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Features</h3>
+              <h3 className="font-semibold mb-4">Convert To PDF</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>Image to PDF</li>
                 <li>Word to PDF</li>
                 <li>Excel to PDF</li>
-                <li>PowerPoint to PDF</li>
+                <li>JPEG to PDF</li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Tools</h3>
+              <h3 className="font-semibold mb-4">PDF Tools</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>PDF Resizer</li>
                 <li>PDF Merge</li>
                 <li>PDF Split</li>
                 <li>PDF Compress</li>
+                <li>PDF Resizer</li>
+                <li>Remove Pages</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Extract & Convert</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li>PDF to JPG</li>
+                <li>Extract Text</li>
+                <li>Extract Images</li>
+                <li>Batch Processing</li>
               </ul>
             </div>
             <div>

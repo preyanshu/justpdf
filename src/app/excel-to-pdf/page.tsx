@@ -50,9 +50,11 @@ export default function ExcelToPdfPage() {
               <table style="border-collapse: collapse; width: 100%; border: 2px solid #333;">
           `;
           
+          // @ts-ignore
           jsonData.forEach((row: any[], rowIndex: number) => {
             html += '<tr>';
-            row.forEach((cell: any, cellIndex: number) => {
+            // @ts-ignore
+            row.forEach((cell: any) => {
               const cellValue = cell || '';
               const cellStyle = `
                 border: 1px solid #333;
@@ -107,8 +109,7 @@ export default function ExcelToPdfPage() {
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
-            logging: false,
-            letterRendering: true
+            logging: false
           });
 
           // Clean up
@@ -132,6 +133,7 @@ export default function ExcelToPdfPage() {
       }
 
       const pdfBytes = await pdfDoc.save();
+      // @ts-ignore
       const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
       setProcessedPdf(pdfBlob);
     } catch (err) {
