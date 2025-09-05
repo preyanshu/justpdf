@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PDFDocument } from 'pdf-lib';
 import { saveAs } from 'file-saver';
 import FileUpload from '@/components/FileUpload';
 import { ArrowLeft, Download, Merge, FileText, X, ArrowUp, ArrowDown } from 'lucide-react';
@@ -44,22 +43,25 @@ export default function PdfMergePage() {
     setError('');
 
     try {
-      const mergedPdf = await PDFDocument.create();
-      
-      for (const file of files) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await PDFDocument.load(arrayBuffer);
-        const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-        
-        pages.forEach((page) => mergedPdf.addPage(page));
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('files', file);
+      });
+
+      const response = await fetch('/api/pdf-merge', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Merge failed');
       }
 
-      const pdfBytes = await mergedPdf.save();
-      // @ts-ignore
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const pdfBlob = await response.blob();
       setProcessedPdf(pdfBlob);
     } catch (err) {
-      setError('Failed to merge PDFs. Please try again.');
+      setError(err instanceof Error ? err.message : 'Merge failed. Please try again.');
       console.error('Merge error:', err);
     } finally {
       setIsProcessing(false);

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PDFDocument } from 'pdf-lib';
 import { saveAs } from 'file-saver';
 import FileUpload from '@/components/FileUpload';
 import { ArrowLeft, Download, Scissors, FileText } from 'lucide-react';
@@ -30,27 +29,30 @@ export default function PdfSplitPage() {
 
     try {
       const file = files[0];
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      const pageCount = pdfDoc.getPageCount();
-      
-      const newPdfs: Blob[] = [];
-      
-      // Split each page into a separate PDF
-      for (let i = 0; i < pageCount; i++) {
-        const newPdf = await PDFDocument.create();
-        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i]);
-        newPdf.addPage(copiedPage);
-        
-        const pdfBytes = await newPdf.save();
-        // @ts-ignore
-        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-        newPdfs.push(pdfBlob);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('splitMode', 'pages');
+      formData.append('pagesPerSplit', '1');
+
+      const response = await fetch('/api/pdf-split', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Split failed');
       }
+
+      // For now, we'll download the zip file directly
+      const blob = await response.blob();
+      saveAs(blob, 'split-pages.zip');
       
-      setSplitPdfs(newPdfs);
+      // Show success message
+      setError('');
+      alert('PDF split successfully! Check your downloads for the zip file.');
     } catch (err) {
-      setError('Failed to split PDF. Please try again.');
+      setError(err instanceof Error ? err.message : 'Split failed. Please try again.');
       console.error('Split error:', err);
     } finally {
       setIsProcessing(false);

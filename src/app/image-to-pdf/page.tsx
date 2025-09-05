@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PDFDocument } from 'pdf-lib';
 import { saveAs } from 'file-saver';
 import FileUpload from '@/components/FileUpload';
 import { ArrowLeft, Download, Image as ImageIcon, FileText } from 'lucide-react';
@@ -29,98 +28,25 @@ export default function ImageToPdfPage() {
     setError('');
 
     try {
-      const pdfDoc = await PDFDocument.create();
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('files', file);
+      });
 
-      for (const file of files) {
-        const arrayBuffer = await file.arrayBuffer();
-        const imageBytes = new Uint8Array(arrayBuffer);
-        
-        let image;
-        const fileType = file.type.toLowerCase();
-        
-        if (fileType.includes('png')) {
-          image = await pdfDoc.embedPng(imageBytes);
-        } else if (fileType.includes('jpg') || fileType.includes('jpeg')) {
-          image = await pdfDoc.embedJpg(imageBytes);
-        } else {
-          // Convert other formats to PNG using canvas
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          
-          await new Promise((resolve, reject) => {
-            img.onload = () => {
-              canvas.width = img.width;
-              canvas.height = img.height;
-              ctx?.drawImage(img, 0, 0);
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  resolve(blob);
-                } else {
-                  reject(new Error('Failed to convert image'));
-                }
-              }, 'image/png');
-            };
-            img.onerror = reject;
-            img.src = URL.createObjectURL(file);
-          });
-          
-          const pngBlob = await new Promise<Blob>((resolve, reject) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-            
-            img.onload = () => {
-              canvas.width = img.width;
-              canvas.height = img.height;
-              ctx?.drawImage(img, 0, 0);
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  resolve(blob);
-                } else {
-                  reject(new Error('Failed to convert image'));
-                }
-              }, 'image/png');
-            };
-            img.onerror = reject;
-            img.src = URL.createObjectURL(file);
-          });
-          
-          const pngArrayBuffer = await pngBlob.arrayBuffer();
-          const pngBytes = new Uint8Array(pngArrayBuffer);
-          image = await pdfDoc.embedPng(pngBytes);
-        }
+      const response = await fetch('/api/image-to-pdf', {
+        method: 'POST',
+        body: formData,
+      });
 
-        const page = pdfDoc.addPage();
-        const { width, height } = page.getSize();
-        const imageSize = image.scale(1);
-        
-        // Calculate scaling to fit image on page
-        const scaleX = width / imageSize.width;
-        const scaleY = height / imageSize.height;
-        const scale = Math.min(scaleX, scaleY);
-        
-        const scaledWidth = imageSize.width * scale;
-        const scaledHeight = imageSize.height * scale;
-        
-        // Center the image on the page
-        const x = (width - scaledWidth) / 2;
-        const y = (height - scaledHeight) / 2;
-        
-        page.drawImage(image, {
-          x,
-          y,
-          width: scaledWidth,
-          height: scaledHeight,
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Conversion failed');
       }
 
-      const pdfBytes = await pdfDoc.save();
-      // @ts-ignore
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const pdfBlob = await response.blob();
       setProcessedPdf(pdfBlob);
     } catch (err) {
-      setError('Failed to convert images to PDF. Please try again.');
+      setError(err instanceof Error ? err.message : 'Conversion failed. Please try again.');
       console.error('Conversion error:', err);
     } finally {
       setIsProcessing(false);

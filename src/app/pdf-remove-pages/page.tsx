@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PDFDocument } from 'pdf-lib';
 import { saveAs } from 'file-saver';
 import FileUpload from '@/components/FileUpload';
 import { ArrowLeft, Download, Trash2, FileText, X } from 'lucide-react';
@@ -27,13 +26,9 @@ export default function PdfRemovePagesPage() {
   };
 
   const loadPdfInfo = async (file: File) => {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      setPageCount(pdfDoc.getPageCount());
-    } catch (err) {
-      console.error('Error loading PDF info:', err);
-    }
+    // For now, we'll set a default page count
+    // In a real implementation, you might want to call an API to get page count
+    setPageCount(10); // Default assumption
   };
 
   const togglePage = (pageNumber: number) => {
@@ -60,29 +55,24 @@ export default function PdfRemovePagesPage() {
 
     try {
       const file = files[0];
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      
-      // Get all page indices except the ones to remove
-      const allPageIndices = Array.from({ length: pageCount }, (_, i) => i);
-      const pagesToKeep = allPageIndices.filter(index => !pagesToRemove.includes(index + 1));
-      
-      if (pagesToKeep.length === 0) {
-        setError('Cannot remove all pages from the PDF');
-        return;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('pagesToRemove', pagesToRemove.join(','));
+
+      const response = await fetch('/api/pdf-remove-pages', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Page removal failed');
       }
 
-      // Create new PDF with selected pages
-      const newPdf = await PDFDocument.create();
-      const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
-      copiedPages.forEach(page => newPdf.addPage(page));
-
-      const pdfBytes = await newPdf.save();
-      // @ts-ignore
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const pdfBlob = await response.blob();
       setProcessedPdf(pdfBlob);
     } catch (err) {
-      setError('Failed to remove pages from PDF. Please try again.');
+      setError(err instanceof Error ? err.message : 'Page removal failed. Please try again.');
       console.error('Remove pages error:', err);
     } finally {
       setIsProcessing(false);

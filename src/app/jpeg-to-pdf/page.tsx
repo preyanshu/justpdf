@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PDFDocument } from 'pdf-lib';
 import { saveAs } from 'file-saver';
 import FileUpload from '@/components/FileUpload';
 import { ArrowLeft, Download, Image, FileText } from 'lucide-react';
@@ -29,50 +28,25 @@ export default function JpegToPdfPage() {
     setError('');
 
     try {
-      const pdfDoc = await PDFDocument.create();
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('files', file);
+      });
 
-      for (const file of files) {
-        const arrayBuffer = await file.arrayBuffer();
-        const imageBytes = new Uint8Array(arrayBuffer);
-        
-        // Check if it's a JPEG file
-        if (!file.type.includes('jpeg') && !file.type.includes('jpg')) {
-          setError('Please select only JPEG/JPG files');
-          return;
-        }
-        
-        // Embed JPEG image
-        const image = await pdfDoc.embedJpg(imageBytes);
-        const page = pdfDoc.addPage();
-        const { width, height } = page.getSize();
-        const imageSize = image.scale(1);
-        
-        // Calculate scaling to fit image on page
-        const scaleX = width / imageSize.width;
-        const scaleY = height / imageSize.height;
-        const scale = Math.min(scaleX, scaleY);
-        
-        const scaledWidth = imageSize.width * scale;
-        const scaledHeight = imageSize.height * scale;
-        
-        // Center the image on the page
-        const x = (width - scaledWidth) / 2;
-        const y = (height - scaledHeight) / 2;
-        
-        page.drawImage(image, {
-          x,
-          y,
-          width: scaledWidth,
-          height: scaledHeight,
-        });
+      const response = await fetch('/api/jpeg-to-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Conversion failed');
       }
 
-      const pdfBytes = await pdfDoc.save();
-      // @ts-ignore
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const pdfBlob = await response.blob();
       setProcessedPdf(pdfBlob);
     } catch (err) {
-      setError('Failed to convert JPEG images to PDF. Please try again.');
+      setError(err instanceof Error ? err.message : 'Conversion failed. Please try again.');
       console.error('Conversion error:', err);
     } finally {
       setIsProcessing(false);
